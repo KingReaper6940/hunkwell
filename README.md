@@ -1,5 +1,7 @@
 # Hunkwell
 
+[Open Hunkwell](https://hunkwell.vercel.app)
+
 **Read the patch. Know the result.**
 
 Inspect a single-file unified diff against pasted source text. Hunkwell checks exact positions, context, removals, line counts, and final-newline markers before producing an all-or-nothing result.
