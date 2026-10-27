@@ -20,7 +20,7 @@ export function applyStrict(source,patch){
  output.push(...input.slice(cursor));
  if(output.slice(0,-1).some(line=>!line.newline))return fail(patch.hunks.length,'A no-newline marker would leave a non-final output line unterminated.');
  const text=output.map(line=>line.text+(line.newline?'\n':'')).join('');
- if(text.length>200000||output.length>10000)return fail(patch.hunks.length,'Output exceeds 200,000 UTF-16 units or 10,000 lines.');
+ if(text.length>100000||output.length>5000)return fail(patch.hunks.length,'Output exceeds 100,000 UTF-16 units or 5,000 lines.');
  if(patch.newFile.split('\t')[0]==='/dev/null'&&text!=='')return fail(patch.hunks.length,'A /dev/null new header requires empty output.');
  return {ok:true,output:text,receipts,conflict:null};
 }

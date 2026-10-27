@@ -1,0 +1,6 @@
+{
+  "format": "hunkwell-project-v1",
+  "source": "title=Field notes\ntheme=paper\nitems=6\n",
+  "patch": "--- a/settings.txt\n+++ b/settings.txt\n@@ -1,3 +1,4 @@\n title=Field notes\n-theme=paper\n+theme=mint\n items=6\n+preview=true\n",
+  "direction": "forward"
+}

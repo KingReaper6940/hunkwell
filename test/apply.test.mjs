@@ -6,3 +6,9 @@ test('inserts at zero-count boundaries and deletes an entire source',()=>{assert
 test('no-newline markers are matched and preserved exactly',()=>{const p=patch('@@ -1 +1 @@\n-old\n\\ No newline at end of file\n+new\n\\ No newline at end of file\n');assert.equal(applyStrict('old',p).output,'new');assert.equal(applyStrict('old\n',p).ok,false);});
 test('inconsistent new positions and ranges fail',()=>{assert.equal(applyStrict('a\n',patch('@@ -1 +2 @@\n-a\n+b\n')).ok,false);assert.equal(applyStrict('a\n',patch('@@ -5 +5 @@\n-a\n+b\n')).ok,false);});
 test('multiple hunks retain unchanged gaps and exact reverse',()=>{const source='a\nb\nc\nd\ne\n',p=patch('@@ -1 +1,2 @@\n-a\n+A\n+AA\n@@ -5 +6 @@\n-e\n+E\n');const r=applyStrict(source,p);assert.equal(r.output,'A\nAA\nb\nc\nd\nE\n');assert.equal(applyStrict(r.output,reversePatch(p)).output,source);});
+
+test('dev/null creation/deletion semantics and newline placement are checked',()=>{
+ const create=parsePatch('--- /dev/null\n+++ demo\n@@ -0,0 +1 @@\n+new\n');assert.equal(applyStrict('',create).output,'new\n');assert.equal(applyStrict('old\n',create).ok,false);
+ const remove=parsePatch('--- demo\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n');assert.equal(applyStrict('old\n',remove).output,'');assert.equal(applyStrict('old\nextra\n',remove).ok,false);
+ const p=patch('@@ -1 +1,2 @@\n a\n\\ No newline at end of file\n+b\n');assert.equal(applyStrict('a',p).ok,false);
+});

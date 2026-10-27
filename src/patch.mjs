@@ -1,6 +1,7 @@
 export function bounded(text,label,max=100000){
  if(typeof text!=='string'||text.length>max||text.includes('\r')||text.includes('\0'))throw new Error(label+' must be LF-only text up to '+max+' UTF-16 units, without NUL.');
  if(text.split('\n').length>5001)throw new Error(label+' must be at most 5,000 lines.');
+ for(const char of text){const p=char.codePointAt(0);if(p>=0xd800&&p<=0xdfff)throw new Error('Replace unpaired UTF-16 surrogates before checking.');}
  return text;
 }
 export const offset=(start,count)=>count===0?start:start-1;

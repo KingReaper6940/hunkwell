@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises';import {execFileSync} from 'node:child_process';import {tmpdir} from 'node:os';import {resolve,dirname,basename} from 'node:path';import {parsePatch} from '../src/patch.mjs';import {applyStrict,reversePatch} from '../src/apply.mjs';
+test('five exact fixture results agree with git apply in isolated temporary repositories',async()=>{
+ const cases=[['a\n','@@ -1 +1 @@\n-a\n+b\n'],['old','@@ -1 +1 @@\n-old\n\\ No newline at end of file\n+new\n\\ No newline at end of file\n'],['','@@ -0,0 +1 @@\n+first\n'],['a\n','@@ -1 +0,0 @@\n-a\n'],['a\nb\nc\n','@@ -1 +1 @@\n-a\n+A\n@@ -3,0 +4 @@\n+d\n']];
+ const root=resolve(tmpdir()),dir=await mkdtemp(resolve(root,'hunkwell-check-'));
+ try{execFileSync('git',['-c','core.autocrlf=false','init','--quiet'],{cwd:dir});for(const [source,body] of cases){const text='--- a/demo.txt\n+++ b/demo.txt\n'+body;await writeFile(resolve(dir,'demo.txt'),source);execFileSync('git',['-c','core.autocrlf=false','apply','--check','--unidiff-zero','-'],{cwd:dir,input:text,stdio:['pipe','pipe','pipe']});execFileSync('git',['-c','core.autocrlf=false','apply','--unidiff-zero','-'],{cwd:dir,input:text});assert.equal(await readFile(resolve(dir,'demo.txt'),'utf8'),applyStrict(source,parsePatch(text)).output);}}
+ finally{if(dirname(dir)!==root||!basename(dir).startsWith('hunkwell-check-'))throw new Error('Unexpected temporary cleanup path.');await rm(dir,{recursive:true,force:true});}
+});
+test('64 replacement patches reverse exactly with and without final newlines',()=>{
+ for(let i=0;i<64;i++){const newline=i%2===0,source='value='+i+(newline?'\n':''),next='value='+(i+1)+(newline?'\n':''),marker=newline?'':'\\ No newline at end of file\n';const p=parsePatch('--- a/demo\n+++ b/demo\n@@ -1 +1 @@\n-value='+i+'\n'+marker+'+value='+(i+1)+'\n'+marker);const r=applyStrict(source,p);assert.equal(r.output,next);assert.equal(applyStrict(r.output,reversePatch(p)).output,source);}
+});
